@@ -1,0 +1,176 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel DecodeColorDepthHSV
+#pragma kernel DecodeDepthHSV
+#pragma kernel ErodeDepth
+
+int image_width;
+int image_height;
+
+// params for generating depth from disparity
+float depth_min;
+float depth_max;
+float depth_units;
+float stereo_baseline;
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+Texture2D<float4>		in_color_texture;		// input
+RWTexture2D<float4>	    out_color_texture;		// color output
+RWTexture2D<float>	    out_depth_texture;		// depth output
+
+int ConvertZtoDepth(float Z)
+{
+//	float bias_factor = 1/Z;
+//	int return_depth = (int)((depth_min + (depth_max - depth_min) * bias_factor) * 1000);
+
+	int fractional_bits = 5;
+	int fractions = 1 << fractional_bits;
+	float _d2d_convert_factor = (stereo_baseline * 920.0f * fractions) / depth_units;
+	int return_depth = (int)((_d2d_convert_factor / Z) + 0.5f);
+	return return_depth;
+}
+
+[numthreads(8, 8, 1)]
+void DecodeColorDepthHSV(int3 threadID : SV_GroupThreadID, int3 groupID : SV_GroupID)
+{
+	int x = threadID.x + groupID.x * 8;
+	int y = threadID.y + groupID.y * 8;
+
+	if (x < image_width	// need it?
+		&& y < image_height)
+	{
+		out_color_texture[int2(x, y)] = float4(in_color_texture[int2(x, y + image_height)].b,
+												in_color_texture[int2(x, y + image_height)].g,
+												in_color_texture[int2(x, y + image_height)].r,
+												in_color_texture[int2(x, y + image_height)].a);
+
+		float R = in_color_texture[int2(x, y)].r * 255;
+		float G = in_color_texture[int2(x, y)].g * 255;
+		float B = in_color_texture[int2(x, y)].b * 255;
+		float Z = 0;
+
+		if (B + G + R < 128.0f)
+		{
+			Z = 0;
+		}
+		else if (R >= G && R >= B)
+		{
+			if (G >= B)
+			{
+				Z = G - B;
+			}
+			else
+			{
+				Z = (G - B) + 1535;
+			}
+		}
+		else if (G >= R && G >= B)
+		{
+			Z = B - R + 512;
+		}
+		else if (B >= G && B >= R)
+		{
+			Z = R - G + 1024;
+		}
+
+		if (Z > 0)
+		{
+			out_depth_texture[int2(x, y)] = ConvertZtoDepth(Z);
+		}
+		else
+		{
+			out_depth_texture[int2(x, y)] = 0;
+		}
+	}
+
+	AllMemoryBarrierWithGroupSync();
+}
+
+
+// TODO: convert from RGB to Depth via HSV 
+[numthreads(8, 8, 1)]
+void DecodeDepthHSV(int3 threadID : SV_GroupThreadID, int3 groupID : SV_GroupID)
+{
+	int x = threadID.x + groupID.x * 8;
+	int y = threadID.y + groupID.y * 8;
+
+	if (x < image_width	// need it?
+		&& y < image_height)
+	{
+		out_color_texture[int2(x, y)] = float4(in_color_texture[int2(x, y)].b,
+			in_color_texture[int2(x, y)].g,
+			in_color_texture[int2(x, y)].r,
+			in_color_texture[int2(x, y)].a);
+
+		float R = in_color_texture[int2(x, y)].r * 255;
+		float G = in_color_texture[int2(x, y)].g * 255;
+		float B = in_color_texture[int2(x, y)].b * 255;
+		float Z = 0;
+
+		if (B + G + R < 128.0f)
+		{
+			Z = 0;
+		}
+		else if (R >= G && R >= B)
+		{
+			if (G >= B)
+			{
+				Z = G - B;
+			}
+			else
+			{
+				Z = (G - B) + 1535;
+			}
+		}
+		else if (G >= R && G >= B)
+		{
+			Z = B - R + 512;
+		}
+		else if (B >= G && B >= R)
+		{
+			Z = R - G + 1024;
+		}
+
+		if (Z > 0)
+		{
+			out_depth_texture[int2(x, y)] = ConvertZtoDepth(Z);
+		}
+		else
+		{
+			out_depth_texture[int2(x, y)] = 0;
+		}
+	}
+
+	AllMemoryBarrierWithGroupSync();
+}
+
+[numthreads(8, 8, 1)]
+void ErodeDepth(int3 threadID : SV_GroupThreadID, int3 groupID : SV_GroupID)
+{
+	int x = threadID.x + groupID.x * 8;
+	int y = threadID.y + groupID.y * 8;
+
+	int nonzero_depth = 0;
+
+	if (x > 0 && x < image_width - 1	// need it?
+	 && y > 0 && y < image_height - 1)
+	{
+		if (out_depth_texture[int2(x - 1, y - 1)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x    , y - 1)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x + 1, y - 1)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x    , y)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x    , y)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x - 1, y + 1)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x    , y + 1)]) { nonzero_depth++; }
+		if (out_depth_texture[int2(x + 1, y + 1)]) { nonzero_depth++; }
+	}
+
+	AllMemoryBarrierWithGroupSync();
+
+	if (x > 0 && x < image_width - 1	// need it?
+ 	 && y > 0 && y < image_height - 1
+	 && nonzero_depth < 8)
+	{
+		out_depth_texture[int2(x, y)] = 0;
+	}
+}
+
