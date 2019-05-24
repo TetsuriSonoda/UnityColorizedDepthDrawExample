@@ -165,7 +165,7 @@ Shader "Custom/PointCloudShadedPolygon"
 
 			for (int j = 0; j < 4; j++)
 			{
-				float3 normalDirection = normalize(mul(float4(vertex_normal[j].x, vertex_normal[j].y, -vertex_normal[j].z, vertex_normal[j].w), unity_WorldToObject).xyz);
+				float3 normalDirection = normalize(mul(float4(vertex_normal[j].x, vertex_normal[j].y, -vertex_normal[j].z, vertex_normal[j].w), unity_ObjectToWorld).xyz);
 				float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
 				float3 diffuseReflection = _LightColor0.xyz * max(0.0, dot(normalDirection, lightDirection));
 
@@ -183,9 +183,10 @@ Shader "Custom/PointCloudShadedPolygon"
 	{
 		// sample the texture
 		fixed4 col = tex2D(_SpriteTex, i.uv);
-		if (col.a == 0.0f || (col.g == 1.0 && col.r == 0.0 && col.b == 0.0)) discard;
-		fixed4 ret_col = fixed4(i.color.r, i.color.g, i.color.b, i.color.a);
+		float depth = tex2D(_DepthTex, i.uv).r;
+		if (depth < 0.05) discard;
 
+		fixed4 ret_col = fixed4(i.color.r, i.color.g, i.color.b, i.color.a);
 		return ret_col;
 	}
 		ENDCG

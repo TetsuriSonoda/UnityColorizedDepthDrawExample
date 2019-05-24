@@ -80,7 +80,7 @@ Material:
     - _DepthThreshold1: 6
     - _DepthThreshold2: 3
     - _DetailNormalMapScale: 1
-    - _DiffThreshold: 0.05
+    - _DiffThreshold: 0.02
     - _DstBlend: 0
     - _FX: 7.584
     - _FY: 6.132
@@ -100,8 +100,8 @@ Material:
     - _PPY: 0.5
     - _Parallax: 0.02
     - _PolygonQuality: 2
-    - _PolygonSizeX: 0.002
-    - _PolygonSizeY: 0.002
+    - _PolygonSizeX: 0.0025
+    - _PolygonSizeY: 0.0025
     - _ScaleBias: 0.001
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

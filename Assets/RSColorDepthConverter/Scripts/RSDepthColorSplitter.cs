@@ -4,18 +4,27 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+public enum DepthCamera
+{
+	D415,
+	D435
+}
+
 public class RSDepthColorSplitter: MonoBehaviour
 {
 	public ComputeShader computeShader;
 
 	public float depthMin = 0.3f;
-	public float depthMax = 2.0f;
+	public float depthMax = 10.0f;
 	public float depthUnits = 0.001f;
 	public int	 postErode = 2;
+
+	public DepthCamera depthCamera = DepthCamera.D435;
 
 	private int imageWidth = 0;
 	private int imageHeight = 0;
 	private float stereoBaseline = 0.05f;
+	private float focalLength = 930.0f;
 	private bool isInit = false;
 
 	public RenderTexture colorTexture { get; private set; }
@@ -56,6 +65,15 @@ public class RSDepthColorSplitter: MonoBehaviour
 		computeShader.SetInt("image_width", imageWidth);
 		computeShader.SetInt("image_height", imageHeight);
 
+		if (depthCamera == DepthCamera.D415)
+		{
+			stereoBaseline = 0.055f;
+		}
+		else if (depthCamera == DepthCamera.D435)
+		{
+			stereoBaseline = 0.05f;
+		}
+
 		colorTexture = new RenderTexture(imageWidth, imageHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 		colorTexture.filterMode = FilterMode.Point;
 		colorTexture.enableRandomWrite = true;
@@ -82,7 +100,9 @@ public class RSDepthColorSplitter: MonoBehaviour
 		computeShader.SetFloat("depth_min", depthMin);
 		computeShader.SetFloat("depth_max", depthMax);
 		computeShader.SetFloat("depth_units", depthUnits);
+		computeShader.SetFloat("focal_length", focalLength);
 		computeShader.SetFloat("stereo_baseline", stereoBaseline);
+
 		computeShader.SetTexture(kernelNo, "in_color_texture", inColorTexture);
 		computeShader.SetTexture(kernelNo, "out_depth_texture", depthTexture);
 		computeShader.SetTexture(kernelNo, "out_color_texture", colorTexture);

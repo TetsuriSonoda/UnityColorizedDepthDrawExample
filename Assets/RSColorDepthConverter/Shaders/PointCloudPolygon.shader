@@ -12,8 +12,6 @@ Shader "Custom/PointCloudPolygon"
 		_PPY("Center Y", Range(0, 10000)) = 0.5
 		_PolygonSizeX("PolygonSizeX", Range(0, 1)) = 0.005
 		_PolygonSizeY("PolygonSizeY", Range(0, 1)) = 0.006
-		_AlphaOffsetX("AlphaOffsetX", Range(0, 1)) = 0.005
-		_AlphaOffsetY("AlphaOffsetY", Range(0, 1)) = 0.006
 		_DiffThreshold("DiffThreshold", Range(0, 10)) = 0.2
 		_PolygonQuality("PolygonQuality", Int) = 1
 		_ScaleBias("ScaleBias", Range(0, 1000)) = 0.001
@@ -61,8 +59,6 @@ Shader "Custom/PointCloudPolygon"
 			float _PPY;
 			float _PolygonSizeX;
 			float _PolygonSizeY;
-			float _AlphaOffsetX;
-			float _AlphaOffsetY;
 			float _DiffThreshold;
 			float _ScaleBias;
 			float _WindowSize;
@@ -179,21 +175,8 @@ Shader "Custom/PointCloudPolygon"
 				fixed4 col = tex2D(_SpriteTex, i.uv);
 				float depth = tex2D(_DepthTex, i.uv).r;
 				if (depth < 0.05) discard;
-//				if (col.a == 0.0f || (col.g == 1.0 && col.r < 0.05 && col.b < 0.05)) discard;
 				fixed4 ret_col = fixed4(col.b, col.g, col.r, col.a);
-/*
-				float around_a[8];
-				around_a[0] = tex2Dlod(_SpriteTex, float4(i.uv.x - _AlphaOffsetX, i.uv.y -_AlphaOffsetX, 0, 0)).a;
-				around_a[1] = tex2Dlod(_SpriteTex, float4(i.uv.x		   , i.uv.y - _AlphaOffsetX, 0, 0)).a;
-				around_a[2] = tex2Dlod(_SpriteTex, float4(i.uv.x + _AlphaOffsetX, i.uv.y - _AlphaOffsetX, 0, 0)).a;
-				around_a[3] = tex2Dlod(_SpriteTex, float4(i.uv.x		   , i.uv.y			, 0, 0)).a;
-				around_a[4] = tex2Dlod(_SpriteTex, float4(i.uv.x + _AlphaOffsetX, i.uv.y			, 0, 0)).a;
-				around_a[5] = tex2Dlod(_SpriteTex, float4(i.uv.x - _AlphaOffsetX, i.uv.y + _AlphaOffsetX, 0, 0)).a;
-				around_a[6] = tex2Dlod(_SpriteTex, float4(i.uv.x		   , i.uv.y + _AlphaOffsetX, 0, 0)).a;
-				around_a[7] = tex2Dlod(_SpriteTex, float4(i.uv.x + _AlphaOffsetX, i.uv.y + _AlphaOffsetX, 0, 0)).a;
 
-				col.a = (around_a[0] + around_a[1] + around_a[2] + around_a[3] + around_a[4] + around_a[5] + around_a[6] + around_a[7]) * 0.125f;
-*/
 				return ret_col;
 			}
 			ENDCG

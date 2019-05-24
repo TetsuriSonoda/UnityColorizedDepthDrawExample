@@ -171,13 +171,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1017580211}
-  m_LocalRotation: {x: -0.15038367, y: 0.49240384, z: -0.8528686, w: -0.08682404}
-  m_LocalPosition: {x: -2.118987, y: -2.6750405, z: 15.152351}
+  m_LocalRotation: {x: 0, y: 0.49999994, z: -0.86602545, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 120, y: 200, z: 0}
+  m_LocalEulerAnglesHint: {x: 120, y: 180, z: 0}
 --- !u!1001 &1972363616
 Prefab:
   m_ObjectHideFlags: 0
@@ -215,6 +215,25 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4222300446747068, guid: a00baca0bb469604a8918e19d48c2314, type: 2}
       propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114832335180091564, guid: a00baca0bb469604a8918e19d48c2314,
+        type: 2}
+      propertyPath: fileName
+      value: /capture.mp4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114351706300221330, guid: a00baca0bb469604a8918e19d48c2314,
+        type: 2}
+      propertyPath: depthMin
+      value: 0.29
+      objectReference: {fileID: 0}
+    - target: {fileID: 114351706300221330, guid: a00baca0bb469604a8918e19d48c2314,
+        type: 2}
+      propertyPath: depthMax
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4000993786226534, guid: a00baca0bb469604a8918e19d48c2314, type: 2}
+      propertyPath: m_LocalPosition.x
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -295,7 +314,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1986442430}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

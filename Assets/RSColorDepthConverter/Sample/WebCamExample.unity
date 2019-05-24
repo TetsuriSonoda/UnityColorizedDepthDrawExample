@@ -157,6 +157,11 @@ Prefab:
       propertyPath: colorTextureBinding.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 463594373}
+    - target: {fileID: 114673968441964562, guid: 75fb43677b6a49642a90b05ef262ce27,
+        type: 2}
+      propertyPath: cameraIndex
+      value: 5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 75fb43677b6a49642a90b05ef262ce27, type: 2}
   m_IsPrefabParent: 0

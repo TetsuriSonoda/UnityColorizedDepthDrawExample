@@ -11,22 +11,45 @@ float depth_min;
 float depth_max;
 float depth_units;
 float stereo_baseline;
+float focal_length;
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 Texture2D<float4>		in_color_texture;		// input
 RWTexture2D<float4>	    out_color_texture;		// color output
 RWTexture2D<float>	    out_depth_texture;		// depth output
 
+int DisparityToDepth(float disparity)
+{
+	int fractional_bits = 5;
+	int fractions = 1 << fractional_bits;
+	float _d2d_convert_factor = (stereo_baseline * focal_length * fractions) / depth_units;
+	return (int)((_d2d_convert_factor / disparity) + 0.5f);
+}
+
+float DepthToDisparity(float depth)
+{
+	int fractional_bits = 5;
+	int fractions = 1 << fractional_bits;
+	float _d2d_convert_factor = (stereo_baseline * focal_length * fractions) / depth_units;
+	return (_d2d_convert_factor / depth);
+}
+
 int ConvertZtoDepth(float Z)
 {
-//	float bias_factor = 1/Z;
-//	int return_depth = (int)((depth_min + (depth_max - depth_min) * bias_factor) * 1000);
+//	float reverse_z = 1 / Z;
+//	int return_depth = (int)((depth_min + (depth_max - depth_min) * reverse_z) + 0.5f);
 
+	float disparity_min = DepthToDisparity(depth_min * 1000.0f);
+	float disparity_max = DepthToDisparity(depth_max * 1000.0f);
+	float target_disparity = disparity_max - (disparity_max - disparity_min) * Z / 1536.0f;
+	return DisparityToDepth(target_disparity);
+/*
 	int fractional_bits = 5;
 	int fractions = 1 << fractional_bits;
 	float _d2d_convert_factor = (stereo_baseline * 920.0f * fractions) / depth_units;
 	int return_depth = (int)((_d2d_convert_factor / Z) + 0.5f);
 	return return_depth;
+*/
 }
 
 [numthreads(8, 8, 1)]

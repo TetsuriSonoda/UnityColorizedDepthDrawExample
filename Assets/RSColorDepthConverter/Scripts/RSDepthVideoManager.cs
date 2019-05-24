@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Events;
+using UnityEngine.Video;
 using Intel.RealSense;
 
 public class RSDepthVideoManager : MonoBehaviour {
@@ -11,6 +12,8 @@ public class RSDepthVideoManager : MonoBehaviour {
 
 	public RSDepthColorSplitter depthColorSplitter;
 	public GameObject targetCamera;
+
+	public float frameRate = 30;
 
 	// render texture resolution needs to be same to input video resolution
 	public RenderTexture movieInputColorTexture;
@@ -28,7 +31,10 @@ public class RSDepthVideoManager : MonoBehaviour {
 	public TextureProvider.TextureEvent depthTextureBinding;
 	public RealsenseColorStreamActiveEvent OnColorCalibrationInit;
 
-//	private bool isUpdated = false;
+	private VideoPlayer videoPlayer = null;
+	private float startTime = 0;
+
+	//	private bool isUpdated = false;
 
 	// TODO: load intrinsics from meta data stream
 	private void SetCameraParam()
@@ -50,36 +56,37 @@ public class RSDepthVideoManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-// for Android player
-/*
-		Debug.Log("Loading from Movie folder...");
-		string moviePath = "";
-		using (AndroidJavaClass jcEnvironment = new AndroidJavaClass("android.os.Environment"))
-		using (AndroidJavaObject joExDir = jcEnvironment.CallStatic<AndroidJavaObject>("getExternalStorageDirectory"))
-		{
-			moviePath = joExDir.Call<string>("toString") + "/Movies";
-		}
-		// make directly if not exist
-		if (!Directory.Exists(moviePath)) Directory.CreateDirectory(moviePath);
-		// input file name
-		moviePath += fileName;
-*/
+		// for Android player
+		/*
+				Debug.Log("Loading from Movie folder...");
+				string moviePath = "";
+				using (AndroidJavaClass jcEnvironment = new AndroidJavaClass("android.os.Environment"))
+				using (AndroidJavaObject joExDir = jcEnvironment.CallStatic<AndroidJavaObject>("getExternalStorageDirectory"))
+				{
+					moviePath = joExDir.Call<string>("toString") + "/Movies";
+				}
+				// make directly if not exist
+				if (!Directory.Exists(moviePath)) Directory.CreateDirectory(moviePath);
+				// input file name
+				moviePath += fileName;
+		*/
 		var moviePath = Application.streamingAssetsPath + fileName;
-		Debug.Log(moviePath);
+//		Debug.Log(moviePath);
 
-		var videoPlayer = targetCamera.AddComponent<UnityEngine.Video.VideoPlayer>();
+		videoPlayer = targetCamera.AddComponent<VideoPlayer>();
 		videoPlayer.playOnAwake = false;
 		videoPlayer.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
 		videoPlayer.targetTexture = movieInputColorTexture;
 		videoPlayer.targetCameraAlpha = 1.0f;
 		videoPlayer.url = moviePath;
-		videoPlayer.frame = 100;
-		videoPlayer.isLooping = true;
-//		videoPlayer.loopPointReached += EndReached;
+		videoPlayer.frame = 0;
+		//		videoPlayer.isLooping = true;
+		//		videoPlayer.loopPointReached += EndReached;
 		videoPlayer.Play();
+		startTime = Time.time;
 
 		//		To output as matrial
-//		GetComponent<MeshRenderer>().material.mainTexture = movieInputColorTexture;
+		//		GetComponent<MeshRenderer>().material.mainTexture = movieInputColorTexture;
 		depthColorSplitter.Initialize(movieInputColorTexture);
 
 		SetCameraParam();
@@ -88,8 +95,24 @@ public class RSDepthVideoManager : MonoBehaviour {
 	}
 
 	// Update is called once per frame
-	void Update ()
+	void Update()
 	{
+		if (videoPlayer.frame < (long)videoPlayer.frameCount)
+		{
+			var frameNumber = (int)(frameRate * (Time.time - startTime));
+			for(int i=0; i< (frameNumber - videoPlayer.frame); i++)
+			{
+				videoPlayer.frame++;
+			}
+
+			//	videoPlayer.frame = frameNumber;
+		}
+		else
+		{
+			videoPlayer.Play();
+			videoPlayer.frame = 0;
+			startTime = Time.time;
+		}
 		// Split from video stream to color and depth
 		depthColorSplitter.UpdateTexture(movieInputColorTexture);
 		colorTextureBinding.Invoke(depthColorSplitter.colorTexture);
